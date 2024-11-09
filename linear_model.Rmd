@@ -96,7 +96,161 @@ nyc_airbnb |>
   geom_point()
 ```
 
+Hypothesis testing
 ```{r}
+fit |>
+  broom::tidy()
+
+fit_null = lm(price ~ stars + borough, data = nyc_airbnb)
+fit_alt = lm(price ~ stars + borough + room_type, data = nyc_airbnb)
+```
+
+
+look at both
+```{r}
+fit_null |>
+  broom::tidy()
+
+fit_alt |>
+  broom::tidy()
+
+anova(fit_null, fit_alt)|>
+  broom::tidy()
+```
+
+
+```{r}
+nyc_airbnb |>
+  lm(price ~ stars*borough + room_type*borough, data = _) |>
+  broom::tidy()
+```
+
+seperate models
+```{r}
+nyc_airbnb |>
+  filter(borough == "Manhattan") |>
+  lm(price ~ stars + room_type, data = _)|>
+  broom::tidy()
+```
+
+```{r}
+nyc_airbnb |>
+  filter(borough == "Brooklyn") |>
+  lm(price ~ stars + room_type, data = _)|>
+  broom::tidy()
+```
+
+use list columns
+```{r}
+nyc_airbnb |>
+  nest(data = -borough)|>
+  mutate(
+    model = map(data, \(x) lm(price ~ stars + room_type, data = x)),
+    results = map(model, broom::tidy)
+  )|>
+  select(borough, results)|>
+  unnest(results)|>
+  select(borough, term, estimate) |>
+  pivot_wider(
+    names_from = term, 
+    values_from = estimate
+  )
+```
+
+## room type across manhattan neighourhood
+```{r}
+nyc_airbnb |>
+  filter(borough == "Manhattan",
+  neighbourhood == "Chinatown") |>
+  lm(price ~ stars + room_type, data = _)|>
+  broom::tidy()
+```
+
+
+```{r}
+nyc_airbnb |>
+  filter(borough == "Manhattan")|>
+  nest(data = -(borough:neighbourhood))|>
+  mutate(
+    model = map(data, \(x) lm(price ~ stars + room_type, data = x)),
+    results = map(model, broom::tidy)
+  )|>
+  select(borough, results)|>
+  unnest(results)|>
+  select(borough, term, estimate)|>
+  pivot_wider(
+    names_from = term,
+    values_from = estimate
+  )
+```
+
+```{r}
+nyc_airbnb |>
+  nest(data = -borough)|>
+  mutate(
+    model = map(data, \(x) lm(price ~ stars + room_type, data = x)),
+    results = map(model, broom::tidy)
+  )|>
+  select(borough, results)|>
+  unnest(results)|>
+  select(borough, term, estimate)|>
+  pivot_wider(
+    names_from = term,
+    values_from = estimate
+  )
+```
+
+
+```{r}
+nyc_airbnb |>
+  filter(
+    borough == "Manhattan",
+    neighbourhood == "Chinatown")|>
+  lm(price ~ stars + room_type, data = _)|>
+  broom::tidy()
+```
+
+
+```{r}
+nyc_airbnb |>
+  filter(
+    borough == "Manhattan",
+    neighbourhood == "Chelsea")|>
+  lm(price ~ stars + room_type, data = _)|>
+  broom::tidy()
+```
+
+
+```{r, error=TRUE}
+manhanttan_neighbourhood_fit_df = 
+nyc_airbnb |>
+  filter(borough == "Manhattan")|>
+  nest(data = -(borough:neighbourhood))|>
+  mutate(
+    model = map(data, \(x) lm(price ~ stars + room_type, data = x)),
+    resutls = map(model, broom::tidy)
+  )|>
+  select(neighbourhood, results)|>
+  unnest(results)
+```
+
+```{r, error=TRUE}
+manhanttan_neighbourhood_fit_df |>
+  filter(str_detect(term, "room_type"))|>
+  ggplot(aes(x = term, y = estimate))+
+  geom_boxplot()
+```
+
+```{r, error=TRUE}
+manhanttan_neighbourhood_fit_df |>
+  filter(str_detect(term, "room_type"))|>
+  filter(estimate >0)
+
+nyc_airbnb |>
+  filter(
+    neighbourhood == "Noho",
+    room_type == "Shared room"
+  )
 
 ```
 
