@@ -111,3 +111,73 @@ fit |>
 | Borough: Queens        |  -77.075 |   0.000 |
 | Borough: Bronx         |  -90.324 |   0.000 |
 | Borough: Staten Island |  -76.628 |   0.000 |
+
+``` r
+nyc_airbnb|>
+  ggplot(aes(x = stars, y = price))+
+  geom_point()+
+  stat_smooth(method = "lm")
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+    ## Warning: Removed 10037 rows containing non-finite outside the scale range
+    ## (`stat_smooth()`).
+
+    ## Warning: Removed 10037 rows containing missing values or values outside the scale range
+    ## (`geom_point()`).
+
+![](linear_model_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+## some diagnostics
+
+``` r
+modelr::add_residuals(nyc_airbnb, fit)|>
+  ggplot(aes(x = resid))+
+           geom_histogram()
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+    ## Warning: Removed 10037 rows containing non-finite outside the scale range
+    ## (`stat_bin()`).
+
+![](linear_model_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+``` r
+modelr::add_residuals(nyc_airbnb, fit)|>
+  ggplot(aes(x = borough, y = resid))+
+  geom_violin()+
+  ylim(-100, 100)
+```
+
+    ## Warning: Removed 14869 rows containing non-finite outside the scale range
+    ## (`stat_ydensity()`).
+
+![](linear_model_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+Residual against stars
+
+``` r
+modelr::add_residuals(nyc_airbnb, fit)|>
+  ggplot(aes(x = stars, y = resid))+
+  geom_point()
+```
+
+    ## Warning: Removed 10037 rows containing missing values or values outside the scale range
+    ## (`geom_point()`).
+
+![](linear_model_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+``` r
+nyc_airbnb |>
+  modelr::add_residuals(fit) |>
+  modelr::add_predictions(fit)|>
+  ggplot(aes(x = pred, y = resid))+
+  geom_point()
+```
+
+    ## Warning: Removed 10037 rows containing missing values or values outside the scale range
+    ## (`geom_point()`).
+
+![](linear_model_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
